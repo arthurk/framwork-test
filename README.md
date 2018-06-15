@@ -72,7 +72,7 @@ Requests/sec:    234.91
 Transfer/sec:     68.36KB
 ```
 
-Go
+Go stdlib
 
 ```
 ➤ wrk -d20s -t10 -c200 http://localhost:8000/articles
@@ -85,4 +85,49 @@ Running 20s test @ http://localhost:8000/articles
   Socket errors: connect 0, read 42, write 0, timeout 0
 Requests/sec:  32737.06
 Transfer/sec:      9.05MB
+```
+
+Python 3.6 + aiohttp
+
+```
+➤ wrk -d20s -t10 -c200 http://localhost:8000/articles
+Running 20s test @ http://localhost:8000/articles
+  10 threads and 200 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    52.06ms    3.23ms 101.00ms   78.33%
+    Req/Sec   384.99     29.57   727.00     85.35%
+  76777 requests in 20.08s, 29.95MB read
+  Socket errors: connect 0, read 120, write 0, timeout 0
+Requests/sec:   3822.67
+Transfer/sec:      1.49MB
+```
+
+Python 3.6 + aiohttp + Gunicorn (aiohttp.GunicornWebWorker)
+
+```
+Running 20s test @ http://localhost:8000/articles
+  10 threads and 200 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    38.80ms    3.75ms 100.60ms   87.65%
+    Req/Sec   516.84     68.94   790.00     58.43%
+  103175 requests in 20.10s, 15.55MB read
+  Socket errors: connect 0, read 121, write 0, timeout 0
+Requests/sec:   5132.94
+Transfer/sec:    792.02KB
+```
+
+
+Python 3.6 + aiohttp + Gunicorn (aiohttp.GunicornUVLoopWebWorker)
+
+```
+➤ wrk -d20s -t10 -c200 http://localhost:8000/articles
+Running 20s test @ http://localhost:8000/articles
+  10 threads and 200 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    29.56ms   10.48ms  70.62ms   58.78%
+    Req/Sec   675.60     80.06     0.87k    70.35%
+  134549 requests in 20.02s, 20.27MB read
+  Socket errors: connect 0, read 133, write 0, timeout 0
+Requests/sec:   6721.69
+Transfer/sec:      1.01MB
 ```

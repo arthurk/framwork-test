@@ -7,6 +7,9 @@ name = "pypi"
 aiohttp = "*"
 cchardet = "*"
 aiodns = "*"
+gunicorn = "*"
+meinheld = "*"
+uvloop = "*"
 
 [dev-packages]
 
