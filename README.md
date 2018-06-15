@@ -10,11 +10,11 @@ Article Resource Schema:
 
 The REST API should have the following Routes:
 
-GET /articles -> List all articles
-GET /articles/{id} -> Article details
-POST /articles -> create new article
-POST /articles/{id} -> update
-DELETE /articles/{id} -> delete
+- GET /articles -> List all articles
+- GET /articles/{id} -> Article details
+- POST /articles -> create new article
+- POST /articles/{id} -> update
+- DELETE /articles/{id} -> delete
 
 Notes:
 - Exclude deleted articles
