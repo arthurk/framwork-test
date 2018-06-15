@@ -36,8 +36,7 @@ def create_article(data: http.RequestData, password: http.Header) -> dict:
         raise exceptions.BadRequest()
 
     # find the next id
-    max_id = max([a['id'] for a in ARTICLES])
-    next_id = max_id + 1
+    next_id = max([a['id'] for a in ARTICLES]) + 1
 
     # create new article and append to list of articles
     date = datetime.now().replace(microsecond=0).isoformat()
