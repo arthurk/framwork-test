@@ -43,6 +43,20 @@ Requests/sec:    236.36
 Transfer/sec:     68.78KB
 ```
 
+Apistar + Python 3.6 + Gunicorn + Meinheld
+
+```
+➤ wrk -d20s -t10 -c200 http://localhost:8000/articles
+Running 20s test @ http://localhost:8000/articles
+  10 threads and 200 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    15.89ms    2.75ms 155.59ms   95.06%
+    Req/Sec     1.25k   100.27     2.48k    95.94%
+  249003 requests in 20.02s, 73.14MB read
+Requests/sec:  12436.50
+Transfer/sec:      3.65MB
+```
+
 Apistar with PyPy 6.0
 
 ```
