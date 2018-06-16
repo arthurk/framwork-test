@@ -3,6 +3,7 @@ from datetime import datetime
 class MemoryRepo:
     def __init__(self):
         self.articles = []
+        self.last_id = 0
 
     def get_article(self, article_id: int) -> dict:
         for article in self.articles:
@@ -14,14 +15,13 @@ class MemoryRepo:
         return [a for a in self.articles if not a['status'] == 'deleted']
 
     def add_article(self, article: dict):
-        if self.articles:
-            next_id = max(a['id'] for a in self.articles) + 1
-        else:
-            next_id = 1
+        next_id = self.last_id + 1
         date = datetime.now().replace(microsecond=0).isoformat()
         article = {'id': next_id, 'title': article['title'],
                    'created': date, 'status': 'created'}
         self.articles.append(article)
+        self.last_id += 1
+        return next_id
 
     def delete_article(self, article_id: int):
         for article in self.articles:
