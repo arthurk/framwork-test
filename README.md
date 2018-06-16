@@ -28,54 +28,90 @@ Notes:
 Benchmarks
 ----------
 
-Apistar with Python 3.6
+All benchmarks with Python 3.6
+cmd `$ wrk -d20s -t10 -c200 http://localhost:8000/articles`
+
+### apistar
 
 ```
-➤ wrk -d20s -t10 -c200 http://localhost:8000/articles
+# Built-in server
 Running 20s test @ http://localhost:8000/articles
   10 threads and 200 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency    67.23ms    8.62ms  94.21ms   85.43%
-    Req/Sec   184.58     85.45   370.00     64.98%
-  4749 requests in 20.09s, 1.35MB read
-  Socket errors: connect 0, read 197, write 0, timeout 0
-Requests/sec:    236.36
-Transfer/sec:     68.78KB
-```
+    Latency    63.98ms    9.21ms  92.91ms   88.35%
+    Req/Sec   186.19     97.98   400.00     61.66%
+  4764 requests in 20.04s, 1.70MB read
+  Socket errors: connect 0, read 192, write 0, timeout 0
+Requests/sec:    237.78
+Transfer/sec:     87.08KB
 
-Apistar + Python 3.6 + Gunicorn + Meinheld
-
-```
-➤ wrk -d20s -t10 -c200 http://localhost:8000/articles
+# Gunicorn
+$ pipenv run gunicorn app:app
 Running 20s test @ http://localhost:8000/articles
   10 threads and 200 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency    15.89ms    2.75ms 155.59ms   95.06%
-    Req/Sec     1.25k   100.27     2.48k    95.94%
-  249003 requests in 20.02s, 73.14MB read
-Requests/sec:  12436.50
-Transfer/sec:      3.65MB
-```
+    Latency   105.37ms   12.16ms 122.94ms   95.96%
+    Req/Sec   116.62     43.37   200.00     60.36%
+  4605 requests in 20.10s, 1.67MB read
+  Socket errors: connect 0, read 357, write 0, timeout 0
+Requests/sec:    229.07
+Transfer/sec:     85.23KB
 
-Apistar with PyPy 6.0
-
-```
-➤ wrk -d20s -t10 -c200 http://localhost:8000/articles
+# Gunicorn + Meinheld
+$ pipenv run gunicorn app:app --worker-class="egg:meinheld#gunicorn_worker"
 Running 20s test @ http://localhost:8000/articles
   10 threads and 200 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency    91.63ms   62.66ms 271.72ms   60.46%
-    Req/Sec    78.64     56.65   303.00     65.05%
-  4722 requests in 20.10s, 1.34MB read
-  Socket errors: connect 0, read 222, write 0, timeout 0
-Requests/sec:    234.91
-Transfer/sec:     68.36KB
+    Latency    16.41ms    2.86ms 146.08ms   97.55%
+    Req/Sec     1.23k    58.04     1.57k    83.90%
+  244771 requests in 20.04s, 89.87MB read
+  Socket errors: connect 0, read 103, write 0, timeout 0
+Requests/sec:  12215.75
+Transfer/sec:      4.49MB
 ```
 
-Go stdlib
+##### ASyncApp
+```
+# app.serve
+Running 20s test @ http://localhost:8000/articles
+  10 threads and 200 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency     1.34ms    1.76ms   8.15ms   88.43%
+    Req/Sec   101.18    199.43   535.00     81.82%
+  121 requests in 20.01s, 44.31KB read
+Requests/sec:      6.05
+Transfer/sec:      2.21KB
+
+# uvicorn
+$ pipenv run uvicorn app:app
+Running 20s test @ http://localhost:8000/articles
+  10 threads and 200 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    21.67ms    7.78ms  66.69ms   65.02%
+    Req/Sec     0.93k    98.14     1.19k    72.36%
+  185254 requests in 20.09s, 62.54MB read
+  Socket errors: connect 0, read 83, write 0, timeout 0
+Requests/sec:   9222.12
+Transfer/sec:      3.11MB
+
+# daphne
+$ pipenv run daphne app:app
+Running 20s test @ http://localhost:8000/articles
+  10 threads and 200 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   149.25ms   40.05ms 268.05ms   67.29%
+    Req/Sec   121.09     42.48   280.00     68.64%
+  24209 requests in 20.10s, 6.93MB read
+  Socket errors: connect 0, read 374, write 0, timeout 0
+Requests/sec:   1204.29
+Transfer/sec:    352.82KB
+```
+
+
+### Go + gorilla mux
 
 ```
-➤ wrk -d20s -t10 -c200 http://localhost:8000/articles
+$ wrk -d20s -t10 -c200 http://localhost:8000/articles
 Running 20s test @ http://localhost:8000/articles
   10 threads and 200 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
@@ -87,47 +123,43 @@ Requests/sec:  32737.06
 Transfer/sec:      9.05MB
 ```
 
-Python 3.6 + aiohttp
+### aiohttp
 
 ```
+$ wrk -d20s -t10 -c200 http://localhost:8000/articles
+Running 20s test @ http://localhost:8000/articles
+  10 threads and 200 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    52.25ms    3.11ms 138.22ms   82.92%
+    Req/Sec   383.88     27.05   530.00     85.50%
+  76625 requests in 20.10s, 30.18MB read
+  Socket errors: connect 0, read 74, write 0, timeout 0
+Requests/sec:   3812.38
+Transfer/sec:      1.50MB
+
+# Gunicorn (aiohttp.GunicornWebWorker)
+$ pipenv run gunicorn app:app --worker-class aiohttp.GunicornWebWorker
+$ wrk -d20s -t10 -c200 http://localhost:8000/articles
+Running 20s test @ http://localhost:8000/articles
+  10 threads and 200 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    41.27ms    3.46ms 106.61ms   84.20%
+    Req/Sec   485.88     63.58   606.00     60.52%
+  97047 requests in 20.10s, 37.85MB read
+  Socket errors: connect 0, read 107, write 0, timeout 0
+Requests/sec:   4827.95
+Transfer/sec:      1.88MB
+
+# Gunicorn (aiohttp.GunicornUVLoopWebWorker)
+➤ pipenv run gunicorn app:app --worker-class aiohttp.GunicornUVLoopWebWorker
 ➤ wrk -d20s -t10 -c200 http://localhost:8000/articles
 Running 20s test @ http://localhost:8000/articles
   10 threads and 200 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency    52.06ms    3.23ms 101.00ms   78.33%
-    Req/Sec   384.99     29.57   727.00     85.35%
-  76777 requests in 20.08s, 29.95MB read
-  Socket errors: connect 0, read 120, write 0, timeout 0
-Requests/sec:   3822.67
-Transfer/sec:      1.49MB
-```
-
-Python 3.6 + aiohttp + Gunicorn (aiohttp.GunicornWebWorker)
-
-```
-Running 20s test @ http://localhost:8000/articles
-  10 threads and 200 connections
-  Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency    38.80ms    3.75ms 100.60ms   87.65%
-    Req/Sec   516.84     68.94   790.00     58.43%
-  103175 requests in 20.10s, 15.55MB read
-  Socket errors: connect 0, read 121, write 0, timeout 0
-Requests/sec:   5132.94
-Transfer/sec:    792.02KB
-```
-
-
-Python 3.6 + aiohttp + Gunicorn (aiohttp.GunicornUVLoopWebWorker)
-
-```
-➤ wrk -d20s -t10 -c200 http://localhost:8000/articles
-Running 20s test @ http://localhost:8000/articles
-  10 threads and 200 connections
-  Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency    29.56ms   10.48ms  70.62ms   58.78%
-    Req/Sec   675.60     80.06     0.87k    70.35%
-  134549 requests in 20.02s, 20.27MB read
-  Socket errors: connect 0, read 133, write 0, timeout 0
-Requests/sec:   6721.69
-Transfer/sec:      1.01MB
+    Latency    32.08ms   11.36ms  72.85ms   57.57%
+    Req/Sec   625.53     79.47     0.99k    73.23%
+  124951 requests in 20.10s, 48.74MB read
+  Socket errors: connect 0, read 44, write 0, timeout 0
+Requests/sec:   6216.39
+Transfer/sec:      2.42MB
 ```

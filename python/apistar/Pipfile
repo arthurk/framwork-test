@@ -5,6 +5,9 @@ name = "pypi"
 
 [packages]
 apistar = "*"
+aiofiles = "*"
+uvicorn = "*"
+daphne = "*"
 
 [dev-packages]
 
