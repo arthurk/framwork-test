@@ -163,3 +163,57 @@ Running 20s test @ http://localhost:8000/articles
 Requests/sec:   6216.39
 Transfer/sec:      2.42MB
 ```
+
+### quart
+
+```
+# hypercorn-h11
+$ pipenv run app.py
+Running 20s test @ http://localhost:8000/articles
+  10 threads and 200 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   206.62ms   11.27ms 383.00ms   92.86%
+    Req/Sec    96.44     52.92   200.00     60.36%
+  19298 requests in 20.10s, 6.59MB read
+  Socket errors: connect 0, read 116, write 0, timeout 0
+Requests/sec:    960.29
+Transfer/sec:    335.73KB
+
+# uvicorn
+$ pipenv run uvicorn app:app
+Running 20s test @ http://localhost:8000/articles
+  10 threads and 200 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   110.43ms   67.73ms 315.18ms   83.87%
+    Req/Sec   216.81     83.22   380.00     68.82%
+  39012 requests in 20.10s, 13.17MB read
+  Socket errors: connect 0, read 83, write 0, timeout 0
+Requests/sec:   1941.08
+Transfer/sec:    671.04KB
+
+# gunicorn
+$ gunicorn --worker-class quart.worker.GunicornWorker app:app
+Running 20s test @ http://localhost:8000/
+  10 threads and 200 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   215.47ms   32.36ms 325.33ms   79.76%
+    Req/Sec    91.82     56.57   202.00     56.95%
+  18059 requests in 20.06s, 3.89MB read
+  Socket errors: connect 0, read 185, write 0, timeout 0
+  Non-2xx or 3xx responses: 18059
+Requests/sec:    900.47
+Transfer/sec:    198.75KB
+
+# hypercorn
+$ pipenv run hypercorn app:app -b 0.0.0.0:8000
+Running 20s test @ http://localhost:8000/
+  10 threads and 200 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   167.63ms   24.68ms 309.61ms   75.80%
+    Req/Sec   114.99     48.89   202.00     65.09%
+  22951 requests in 20.09s, 4.95MB read
+  Socket errors: connect 0, read 181, write 0, timeout 0
+  Non-2xx or 3xx responses: 22951
+Requests/sec:   1142.57
+Transfer/sec:    252.18KB
+```
