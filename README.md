@@ -13,7 +13,7 @@ The REST API should have the following Routes:
 
 - GET /articles -> List all articles
 - GET /articles/{id} -> Article details
-- POST /articles -> create new article
+- POST /articles -> create new article (return 201 + location header)
 - POST /articles/{id} -> update
 - DELETE /articles/{id} -> delete
 
@@ -71,6 +71,8 @@ Transfer/sec:      4.49MB
 ```
 
 ##### ASyncApp
+Note: app.serve has problems with POST requests, use uvicorn
+https://github.com/encode/apistar/pull/501
 ```
 # app.serve
 Running 20s test @ http://localhost:8000/articles
