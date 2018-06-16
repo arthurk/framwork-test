@@ -130,38 +130,36 @@ $ wrk -d20s -t10 -c200 http://localhost:8000/articles
 Running 20s test @ http://localhost:8000/articles
   10 threads and 200 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency    52.25ms    3.11ms 138.22ms   82.92%
-    Req/Sec   383.88     27.05   530.00     85.50%
-  76625 requests in 20.10s, 30.18MB read
-  Socket errors: connect 0, read 74, write 0, timeout 0
-Requests/sec:   3812.38
-Transfer/sec:      1.50MB
+    Latency    39.58ms    3.32ms  94.33ms   85.10%
+    Req/Sec   507.09     68.58   760.00     58.74%
+  101242 requests in 20.10s, 39.49MB read
+  Socket errors: connect 0, read 62, write 0, timeout 0
+Requests/sec:   5036.81
+Transfer/sec:      1.96MB
 
 # Gunicorn (aiohttp.GunicornWebWorker)
 $ pipenv run gunicorn app:app --worker-class aiohttp.GunicornWebWorker
-$ wrk -d20s -t10 -c200 http://localhost:8000/articles
 Running 20s test @ http://localhost:8000/articles
   10 threads and 200 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency    41.27ms    3.46ms 106.61ms   84.20%
-    Req/Sec   485.88     63.58   606.00     60.52%
-  97047 requests in 20.10s, 37.85MB read
-  Socket errors: connect 0, read 107, write 0, timeout 0
-Requests/sec:   4827.95
-Transfer/sec:      1.88MB
+    Latency    39.46ms    3.35ms  77.94ms   90.59%
+    Req/Sec   508.58     66.43   606.00     64.01%
+  101492 requests in 20.08s, 39.59MB read
+  Socket errors: connect 0, read 59, write 0, timeout 0
+Requests/sec:   5053.40
+Transfer/sec:      1.97MB
 
 # Gunicorn (aiohttp.GunicornUVLoopWebWorker)
 ➤ pipenv run gunicorn app:app --worker-class aiohttp.GunicornUVLoopWebWorker
-➤ wrk -d20s -t10 -c200 http://localhost:8000/articles
 Running 20s test @ http://localhost:8000/articles
   10 threads and 200 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency    32.08ms   11.36ms  72.85ms   57.57%
-    Req/Sec   625.53     79.47     0.99k    73.23%
-  124951 requests in 20.10s, 48.74MB read
-  Socket errors: connect 0, read 44, write 0, timeout 0
-Requests/sec:   6216.39
-Transfer/sec:      2.42MB
+    Latency    30.17ms   10.76ms  90.47ms   62.66%
+    Req/Sec   665.82     91.66     0.92k    70.61%
+  132738 requests in 20.04s, 51.77MB read
+  Socket errors: connect 0, read 66, write 0, timeout 0
+Requests/sec:   6622.75
+Transfer/sec:      2.58MB
 ```
 
 ### quart
