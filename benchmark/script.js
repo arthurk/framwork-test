@@ -21,7 +21,7 @@ export default function() {
   check(res, {
     "status was 200": (r) => r.status === 200,
     "title was correct": (r) => r.json()["title"] === "article",
-    "content type is json": (r) => res.headers['Content-Type'] === "application/json; charset=utf-8",
+    "content type is json": (r) => res.headers['Content-Type'].includes("application/json"),
   });
 
   // update article -> new title
