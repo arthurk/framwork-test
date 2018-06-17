@@ -49,11 +49,11 @@ async def update_article(article_id: int, data: http.RequestData,
 async def delete_article(article_id: int, password: http.Header):
     # if not is_auth(password):
     #     raise exceptions.BadRequest()
-
     try:
         repo.delete_article(article_id)
     except LookupError:
         raise exceptions.NotFound()
+    return http.JSONResponse({}, status_code=204)
 
 
 routes = [
