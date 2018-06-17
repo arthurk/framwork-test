@@ -25,7 +25,7 @@ class MemoryRepo:
 
     def delete_article(self, article_id: int):
         for article in self.articles:
-            if article['id'] == article_id:
+            if article['id'] == article_id and article['status'] != 'deleted':
                 article['status'] = 'deleted'
                 return
         raise LookupError
