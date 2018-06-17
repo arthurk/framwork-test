@@ -24,9 +24,10 @@ async def create_article(request):
     data = await request.json()
     if data['title'] == '':
         return web.HTTPBadRequest()
-
-    repo.add_article({'title': data['title']})
-    return web.json_response()
+    article_id = repo.add_article({'title': data['title']})
+    url = request.app.router['get_article'].url_for(id=str(article_id))
+    headers = {'Location': str(url)}
+    return web.json_response(status=201, headers=headers)
 
 async def update_article(request):
     data = await request.json()
@@ -46,16 +47,17 @@ async def delete_article(request):
         repo.delete_article(article_id)
     except LookupError:
         raise web.HTTPNotFound()
-    return web.json_response()
+    return web.json_response(status=204)
 
 app = web.Application()
 app.add_routes([
     web.get('/articles', list_articles),
-    web.get('/articles/{id:[0-9]+}', get_article),
+    web.get('/articles/{id:[0-9]+}', get_article, name='get_article'),
     web.post('/articles', create_article),
     web.post('/articles/{id:[0-9]+}', update_article),
     web.delete('/articles/{id:[0-9]+}', delete_article),
 ])
 
 if __name__ == '__main__':
+    # turn of access_log for performance reasons
     web.run_app(app, port=8000, access_log=None)
