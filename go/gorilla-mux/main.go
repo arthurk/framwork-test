@@ -188,7 +188,7 @@ func main() {
 	fmt.Println("Server started")
 
 	r := mux.NewRouter()
-	r.Use(loggingMiddleware)
+	//r.Use(loggingMiddleware)
 	r.HandleFunc("/articles", ListArticlesHandler).Methods("GET")
 	r.HandleFunc("/articles/{id:[0-9]+}", GetArticleHandler).Methods("GET")
 	r.HandleFunc("/articles", CreateArticleHandler).Methods("POST")
