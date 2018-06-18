@@ -93,7 +93,7 @@ func UpdateArticle(article Article) (Article, error) {
 
 func DeleteArticle(id int) (Article, error) {
 	for i, a := range articles {
-		if a.Id == id {
+		if a.Id == id && a.Status != "deleted" {
 			articles[i].Status = "deleted"
 			return articles[i], nil
 		}
@@ -107,18 +107,17 @@ func DeleteArticle(id int) (Article, error) {
 
 func ListArticlesHandler(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w)
-
 	articles := GetArticles()
 	json.NewEncoder(w).Encode(articles)
 }
 
 func GetArticleHandler(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w)
-    id, _ := strconv.Atoi(mux.Vars(r)["id"])
+	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 
 	article, err := GetArticleById(id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 	json.NewEncoder(w).Encode(article)
@@ -128,64 +127,70 @@ func CreateArticleHandler(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w)
 
 	var article Article
+
 	err := json.NewDecoder(r.Body).Decode(&article)
 	if err != nil {
 		log.Println("Unable to deserialize body", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
 	article, err = AddArticle(article)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
+	url := fmt.Sprintf("/articles/%d", article.Id)
+	w.Header().Set("Location", url)
+	w.WriteHeader(http.StatusCreated)
 }
 
 func UpdateArticleHandler(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w)
-
-    id, _ := strconv.Atoi(mux.Vars(r)["id"])
+	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 
 	article := Article{Id: id}
 	err := json.NewDecoder(r.Body).Decode(&article)
 	if err != nil {
 		log.Println("Unable to deserialize body", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	article, err = UpdateArticle(article)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 }
 
 func DeleteArticleHandler(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w)
-
-    id, _ := strconv.Atoi(mux.Vars(r)["id"])
+	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 
 	_, err := DeleteArticle(id)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func main() {
 	// Setup Fixtures
-    // Testing only
-	AddArticle(Article{Title: "First!"})
-	AddArticle(Article{Title: "Second Article"})
-	AddArticle(Article{Title: "Third Article"})
-	DeleteArticle(3)
+	// Testing only
+	//AddArticle(Article{Title: "First!"})
+	//AddArticle(Article{Title: "Second Article"})
+	//AddArticle(Article{Title: "Third Article"})
+	//DeleteArticle(3)
 
 	fmt.Println("Server started")
 
 	r := mux.NewRouter()
 	r.Use(loggingMiddleware)
 	r.HandleFunc("/articles", ListArticlesHandler).Methods("GET")
-	r.HandleFunc("/articles/{id:[0-9]+", GetArticleHandler).Methods("GET")
+	r.HandleFunc("/articles/{id:[0-9]+}", GetArticleHandler).Methods("GET")
 	r.HandleFunc("/articles", CreateArticleHandler).Methods("POST")
 	r.HandleFunc("/articles/{id:[0-9]+}", UpdateArticleHandler).Methods("POST")
 	r.HandleFunc("/articles/{id:[0-9]+}", DeleteArticleHandler).Methods("DELETE")
