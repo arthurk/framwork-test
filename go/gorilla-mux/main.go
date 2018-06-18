@@ -114,13 +114,8 @@ func ListArticlesHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetArticleHandler(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w)
+    id, _ := strconv.Atoi(mux.Vars(r)["id"])
 
-	vars := mux.Vars(r)
-	id, err := strconv.Atoi(vars["id"])
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
 	article, err := GetArticleById(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
@@ -149,14 +144,10 @@ func CreateArticleHandler(w http.ResponseWriter, r *http.Request) {
 func UpdateArticleHandler(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w)
 
-	vars := mux.Vars(r)
-	id, err := strconv.Atoi(vars["id"])
-	if err != nil {
-		http.Error(w, err.Error(), 404)
-		return
-	}
+    id, _ := strconv.Atoi(mux.Vars(r)["id"])
+
 	article := Article{Id: id}
-	err = json.NewDecoder(r.Body).Decode(&article)
+	err := json.NewDecoder(r.Body).Decode(&article)
 	if err != nil {
 		log.Println("Unable to deserialize body", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -172,13 +163,9 @@ func UpdateArticleHandler(w http.ResponseWriter, r *http.Request) {
 func DeleteArticleHandler(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w)
 
-	vars := mux.Vars(r)
-	id, err := strconv.Atoi(vars["id"])
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	_, err = DeleteArticle(id)
+    id, _ := strconv.Atoi(mux.Vars(r)["id"])
+
+	_, err := DeleteArticle(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -187,6 +174,7 @@ func DeleteArticleHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	// Setup Fixtures
+    // Testing only
 	AddArticle(Article{Title: "First!"})
 	AddArticle(Article{Title: "Second Article"})
 	AddArticle(Article{Title: "Third Article"})
