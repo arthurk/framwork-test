@@ -9,6 +9,23 @@ from common import MemoryRepo  # noqa
 repo = MemoryRepo()
 repo.add_fixtures()
 
+# FIXME: 500 errors return html
+# other error codes return text/plain
+
+# return json response for 404 (instead of text/plain)
+@web.middleware
+async def error_middleware(request, handler):
+    try:
+        response = await handler(request)
+        if response.status != 404:
+            return response
+        message = response.message
+    except web.HTTPException as ex:
+        if ex.status != 404:
+            raise
+        message = ex.reason
+    return web.json_response({'error': message}, status=404)
+
 async def list_articles(request):
     return web.json_response(repo.get_articles())
 
@@ -49,7 +66,7 @@ async def delete_article(request):
         raise web.HTTPNotFound()
     return web.json_response(status=204)
 
-app = web.Application()
+app = web.Application(middlewares=[error_middleware])
 app.add_routes([
     web.get('/articles', list_articles),
     web.get('/articles/{id:[0-9]+}', get_article, name='get_article'),

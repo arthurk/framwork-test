@@ -3,50 +3,58 @@ import { check, group } from "k6";
 
 const baseUrl = "http://0.0.0.0:8000";
 
+// article url for this VU
+let articleUrl = null;
+
 export default function() {
-  // Create a new article
-  var url = `${baseUrl}/articles`;
-  var payload = JSON.stringify({title: "article"});
-  var res = http.post(url, payload);
-  check(res, {
-    "status was 201": (r) => r.status === 201,
-    "location header is set": (r) => 'Location' in r.headers
+  group("1. create", function() {
+    var url = `${baseUrl}/articles`;
+    var payload = JSON.stringify({title: "article"});
+    var res = http.post(url, payload);
+    check(res, {
+      "status is 201": (r) => r.status === 201,
+      "content-type is application/json": (r) => res.headers['Content-Type'].includes("application/json"),
+      "location header is OK": (r) => 'Location' in r.headers
+    });
+    // save url of newly created article to be used by other tests
+    articleUrl = baseUrl + res.headers['Location'];
   });
-
-  // url of the article needed for further tests
-  var location = baseUrl + res.headers['Location'];
-
-  // Get article details -> check title
-  res = http.get(location);
-  check(res, {
-    "status was 200": (r) => r.status === 200,
-    "title was correct": (r) => r.json()["title"] === "article",
-    "content type is json": (r) => res.headers['Content-Type'].includes("application/json"),
+  group("2. get-after-create", function() {
+    var res = http.get(articleUrl);
+    check(res, {
+      "status is 200": (r) => r.status === 200,
+      "content-type is application/json": (r) => res.headers['Content-Type'].includes("application/json"),
+      "title is OK": (r) => r.json()["title"] === "article",
+    });
   });
-
-  // update article -> new title
-  payload = JSON.stringify({title: "new-article"});
-  res = http.post(location, payload);
-  check(res, {
-    "status was 200": (r) => r.status === 200,
+  group("3. update", function() {
+    var payload = JSON.stringify({title: "new-article"});
+    var res = http.post(articleUrl, payload);
+    check(res, {
+      "status is 200": (r) => r.status === 200,
+      "content-type is application/json": (r) => res.headers['Content-Type'].includes("application/json"),
+    });
   });
-
-  // get article details -> check new title
-  res = http.get(location);
-  check(res, {
-    "status was 200": (r) => r.status === 200,
-    "title was correct": (r) => r.json()["title"] === "new-article",
+  group("4. get-after-update", function() {
+    var res = http.get(articleUrl);
+    check(res, {
+      "status is 200": (r) => r.status === 200,
+      "content-type is application/json": (r) => res.headers['Content-Type'].includes("application/json"),
+      "title is OK": (r) => r.json()["title"] === "new-article",
+    });
   });
-
-  // delete article -> 204
-  res = http.del(location);
-  check(res, {
-    "status was 204": (r) => r.status === 204,
+  group("5. delete", function() {
+    var res = http.del(articleUrl);
+    check(res, {
+      "status is 204": (r) => r.status === 204,
+      "content-type is application/json": (r) => res.headers['Content-Type'].includes("application/json"),
+    });
   });
-
-  // get article details -> 404
-  res = http.get(location);
-  check(res, {
-    "status was 404": (r) => r.status === 404,
+  group("6. get-after-delete", function() {
+    var res = http.get(articleUrl);
+    check(res, {
+      "status is 404": (r) => r.status === 404,
+      "content-type is application/json": (r) => res.headers['Content-Type'].includes("application/json"),
+    });
   });
 };
