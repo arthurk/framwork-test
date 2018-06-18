@@ -6,10 +6,14 @@ const baseUrl = "http://0.0.0.0:8000";
 // article url for this VU
 let articleUrl = null;
 
+// randomly generated article title
+let articleTitle = null;
+
 export default function() {
   group("1. create", function() {
     var url = `${baseUrl}/articles`;
-    var payload = JSON.stringify({title: "article"});
+    articleTitle = Math.random().toString(36).substring(2, 15);
+    var payload = JSON.stringify({title: articleTitle});
     var res = http.post(url, payload);
     check(res, {
       "status is 201": (r) => r.status === 201,
@@ -24,11 +28,12 @@ export default function() {
     check(res, {
       "status is 200": (r) => r.status === 200,
       "content-type is application/json": (r) => res.headers['Content-Type'].includes("application/json"),
-      "title is OK": (r) => r.json()["title"] === "article",
+      "title is OK": (r) => r.json()["title"] === articleTitle,
     });
   });
   group("3. update", function() {
-    var payload = JSON.stringify({title: "new-article"});
+    articleTitle = Math.random().toString(36).substring(2, 15);
+    var payload = JSON.stringify({title: articleTitle});
     var res = http.post(articleUrl, payload);
     check(res, {
       "status is 200": (r) => r.status === 200,
@@ -40,7 +45,7 @@ export default function() {
     check(res, {
       "status is 200": (r) => r.status === 200,
       "content-type is application/json": (r) => res.headers['Content-Type'].includes("application/json"),
-      "title is OK": (r) => r.json()["title"] === "new-article",
+      "title is OK": (r) => r.json()["title"] === articleTitle,
     });
   });
   group("5. delete", function() {

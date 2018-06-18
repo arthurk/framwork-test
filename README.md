@@ -10,7 +10,7 @@ The REST API should have the following Routes:
 
 - GET /articles -> List all articles
 - GET /articles/{id} -> Article details
-- POST /articles -> create new article (return 201 + location header)
+- POST /articles -> create new article
 - POST /articles/{id} -> update
 - DELETE /articles/{id} -> delete
 
@@ -27,4 +27,4 @@ virtual users who follow this script:
 5. Delete the article
 6. Get the article (to make sure it was deleted)
 
-Check `scripts/script.js` for details.
+Check `benchmark/script.js` for details.

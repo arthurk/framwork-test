@@ -7,7 +7,7 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from common import MemoryRepo  # noqa
 
 repo = MemoryRepo()
-repo.add_fixtures()
+#repo.add_fixtures()
 
 # FIXME: 500 errors return html
 # other error codes return text/plain

@@ -7,7 +7,7 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from common import MemoryRepo  # noqa
 
 repo = MemoryRepo()
-repo.add_fixtures()
+#repo.add_fixtures()
 
 # def is_auth(password: str) -> bool:
 #     return password == 'test'
