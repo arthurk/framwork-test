@@ -53,9 +53,7 @@ async def delete_article(article_id: int, password: http.Header):
         repo.delete_article(article_id)
     except LookupError:
         raise exceptions.NotFound()
-    # JSONResponse will return invalid body + content-length
-    # https://github.com/encode/apistar/issues/589
-    return http.Response('', headers={'content-type': 'application/json'}, status_code=204)
+    return http.Response('', status_code=204)
 
 routes = [
     Route('/articles', method='GET', handler=list_articles),

@@ -11,6 +11,7 @@ repo.add_fixtures()
 
 app = Quart(__name__)
 
+
 # returns json on errors rather than html
 class JsonException(exceptions.HTTPException):
     def __init__(self, status_code: int) -> None:
@@ -19,12 +20,15 @@ class JsonException(exceptions.HTTPException):
     def get_response(self) -> Response:
         return JsonResponse('', status=self.status_code)
 
+
 class JsonResponse(Response):
     default_mimetype = 'application/json'
+
 
 @app.route('/articles')
 async def list_articles() -> Response:
     return jsonify(repo.get_articles())
+
 
 @app.route('/articles/<int:article_id>')
 async def get_article(article_id) -> Response:
@@ -33,6 +37,7 @@ async def get_article(article_id) -> Response:
     except LookupError:
         raise JsonException(404)
     return jsonify(article)
+
 
 @app.route('/articles', methods=['POST'])
 async def create_article() -> Response:
@@ -45,6 +50,7 @@ async def create_article() -> Response:
     headers = {'Location': '/articles/%s' % article_id}
     return JsonResponse('', headers=headers, status=201)
 
+
 @app.route('/articles/<int:article_id>', methods=['POST'])
 async def update_article(article_id) -> Response:
     data = await request.get_json()
@@ -56,13 +62,15 @@ async def update_article(article_id) -> Response:
         raise JsonException(404)
     return JsonResponse('')
 
+
 @app.route('/articles/<int:article_id>', methods=['DELETE'])
 async def delete_article(article_id) -> Response:
     try:
         repo.delete_article(article_id)
     except LookupError:
         raise JsonException(404)
-    return JsonResponse('', status=204)
+    return Response('', status=204)
+
 
 if __name__ == '__main__':
     app.run(port=8000, debug=True)

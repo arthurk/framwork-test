@@ -15,6 +15,7 @@ import (
 /*
  * Utils
  */
+
 func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("%s %s", r.Method, r.RequestURI)
@@ -23,7 +24,7 @@ func loggingMiddleware(next http.Handler) http.Handler {
 }
 
 func SetHeaders(w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("Content-Type", "application/json")
 }
 
 /*
@@ -39,26 +40,13 @@ type Article struct {
 
 type Articles []Article
 
-/*
- * Repository
- */
-
-var articles Articles
-var lastArticleId = 0
-
-func GetArticles() Articles {
-	// filter deleted articles
-	newArticles := Articles{}
-	for _, a := range articles {
-		if a.Status != "deleted" {
-			newArticles = append(newArticles, a)
-		}
-	}
-	return newArticles
+type ArticleRepository struct {
+	Articles Articles
+	lastId int
 }
 
-func GetArticleById(id int) (Article, error) {
-	for _, a := range articles {
+func (repo *ArticleRepository) GetById(id int) (Article, error) {
+	for _, a := range repo.Articles {
 		if a.Id == id && a.Status != "deleted" {
 			return a, nil
 		}
@@ -66,39 +54,56 @@ func GetArticleById(id int) (Article, error) {
 	return Article{}, errors.New("Article not found")
 }
 
-func AddArticle(article Article) (Article, error) {
-	if len(article.Title) == 0 {
-		return Article{}, errors.New("Title is required")
+func (repo *ArticleRepository) List() (Articles) {
+	createdArticles := Articles{}
+	for _, a := range repo.Articles {
+		if a.Status != "deleted" {
+			createdArticles = append(createdArticles, a)
+		}
 	}
-	article.Id = lastArticleId + 1
-	article.Created = time.Now().UTC().Format(time.RFC3339)
-	article.Status = "created"
-	articles = append(articles, article)
-	lastArticleId += 1
-	return article, nil
+	return createdArticles
 }
 
-func UpdateArticle(article Article) (Article, error) {
+func (repo *ArticleRepository) Add(a Article) (Article, error) {
+	if len(a.Title) == 0 {
+		return Article{}, errors.New("Title is required")
+	}
+	a.Id = repo.lastId + 1
+	a.Created = time.Now().UTC().Format(time.RFC3339)
+	a.Status = "created"
+	repo.Articles = append(repo.Articles, a)
+	repo.lastId += 1
+	return a, nil
+}
+
+func (repo *ArticleRepository) Update(article Article) (Article, error) {
 	if len(article.Title) == 0 {
 		return Article{}, errors.New("Title is required")
 	}
-	for i, a := range articles {
+	for i, a := range repo.Articles {
 		if a.Id == article.Id {
-			articles[i].Title = article.Title
-			return articles[i], nil
+			repo.Articles[i].Title = article.Title
+			return repo.Articles[i], nil
+		}
+	}
+	return Article{}, fmt.Errorf("Article \"%v\"not found", article.Id)
+}
+
+func (repo *ArticleRepository) Delete(id int) (Article, error) {
+	for i, a := range repo.Articles {
+		if a.Id == id && a.Status != "deleted" {
+			repo.Articles[i].Status = "deleted"
+			return repo.Articles[i], nil
 		}
 	}
 	return Article{}, errors.New("Article not found")
 }
 
-func DeleteArticle(id int) (Article, error) {
-	for i, a := range articles {
-		if a.Id == id && a.Status != "deleted" {
-			articles[i].Status = "deleted"
-			return articles[i], nil
-		}
-	}
-	return Article{}, errors.New("Article not found")
+var repo ArticleRepository
+
+type JsonErrorResponse struct {
+	Code    int      `json:"code"`
+	Message string `json:"message"`
 }
 
 /*
@@ -107,7 +112,7 @@ func DeleteArticle(id int) (Article, error) {
 
 func ListArticlesHandler(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w)
-	articles := GetArticles()
+	articles := repo.List()
 	json.NewEncoder(w).Encode(articles)
 }
 
@@ -115,7 +120,7 @@ func GetArticleHandler(w http.ResponseWriter, r *http.Request) {
 	SetHeaders(w)
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 
-	article, err := GetArticleById(id)
+	article, err := repo.GetById(id)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -134,8 +139,7 @@ func CreateArticleHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
-	article, err = AddArticle(article)
+	article, err = repo.Add(article)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -144,6 +148,8 @@ func CreateArticleHandler(w http.ResponseWriter, r *http.Request) {
 	url := fmt.Sprintf("/articles/%d", article.Id)
 	w.Header().Set("Location", url)
 	w.WriteHeader(http.StatusCreated)
+
+	json.NewEncoder(w).Encode(article)
 }
 
 func UpdateArticleHandler(w http.ResponseWriter, r *http.Request) {
@@ -157,18 +163,22 @@ func UpdateArticleHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	article, err = UpdateArticle(article)
+	article, err = repo.Update(article)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
+		myError := JsonErrorResponse{1, "Could not add article"}
+		wrapped := map[string]interface{}{"error": myError}
+		json.NewEncoder(w).Encode(wrapped)
 		return
 	}
+
+	json.NewEncoder(w).Encode(article)
 }
 
 func DeleteArticleHandler(w http.ResponseWriter, r *http.Request) {
-	SetHeaders(w)
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 
-	_, err := DeleteArticle(id)
+	_, err := repo.Delete(id)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -178,21 +188,21 @@ func DeleteArticleHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	// Setup Fixtures
+	// Fixtures
 	// Testing only
-	//AddArticle(Article{Title: "First!"})
-	//AddArticle(Article{Title: "Second Article"})
-	//AddArticle(Article{Title: "Third Article"})
-	//DeleteArticle(3)
+	repo.Add(Article{Title: "First!"})
+	repo.Add(Article{Title: "Second Article"})
+	repo.Add(Article{Title: "Third Article"})
+	repo.Delete(3)
 
 	fmt.Println("Server started")
 
 	r := mux.NewRouter()
-	//r.Use(loggingMiddleware)
+	r.Use(loggingMiddleware)
 	r.HandleFunc("/articles", ListArticlesHandler).Methods("GET")
 	r.HandleFunc("/articles/{id:[0-9]+}", GetArticleHandler).Methods("GET")
 	r.HandleFunc("/articles", CreateArticleHandler).Methods("POST")
-	r.HandleFunc("/articles/{id:[0-9]+}", UpdateArticleHandler).Methods("POST")
+	r.HandleFunc("/articles/{id:[0-9]+}", UpdateArticleHandler).Methods("PUT")
 	r.HandleFunc("/articles/{id:[0-9]+}", DeleteArticleHandler).Methods("DELETE")
 
 	log.Fatal(http.ListenAndServe("localhost:8000", r))
