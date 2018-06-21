@@ -42,7 +42,7 @@ type Articles []Article
 
 type ArticleRepository struct {
 	Articles Articles
-	lastId int
+	lastId   int
 }
 
 func (repo *ArticleRepository) GetById(id int) (Article, error) {
@@ -54,7 +54,7 @@ func (repo *ArticleRepository) GetById(id int) (Article, error) {
 	return Article{}, errors.New("Article not found")
 }
 
-func (repo *ArticleRepository) List() (Articles) {
+func (repo *ArticleRepository) List() Articles {
 	createdArticles := Articles{}
 	for _, a := range repo.Articles {
 		if a.Status != "deleted" {
@@ -102,7 +102,7 @@ func (repo *ArticleRepository) Delete(id int) (Article, error) {
 var repo ArticleRepository
 
 type JsonErrorResponse struct {
-	Code    int      `json:"code"`
+	Code    int    `json:"code"`
 	Message string `json:"message"`
 }
 
